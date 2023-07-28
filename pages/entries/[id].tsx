@@ -1,6 +1,7 @@
 import { Layouts } from "@/components/layouts"
 import { validStatus } from "@/constants";
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import {
   Button,
   Card,
@@ -11,14 +12,35 @@ import {
   FormControlLabel,
   FormLabel,
   Grid,
+  IconButton,
   Radio,
   RadioGroup,
   TextField,
   capitalize
 } from "@mui/material"
+import { ChangeEvent, useState } from "react";
+import { EntryStatus } from "@/interfaces/entries";
 
 
 const EntryPage = () => {
+  const [inputValue, setInputValue] = useState('')
+  const [status, setStatus] = useState<EntryStatus>('pending')
+  const [touched, setTouched] = useState(false)
+
+  const onInputValueChanged = (event: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value)
+  }
+
+  const onStatusChanged = (event: ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.value);
+    setStatus(event.target.value as EntryStatus)
+  }
+
+  const onSave = () => {
+    console.log({ inputValue, status });
+  }
+console.log(touched);
+
 
   return (
     <Layouts title=".........">
@@ -31,7 +53,7 @@ const EntryPage = () => {
         >
           <Card>
             <CardHeader
-              title="Entrada:"
+              title={`Entrada: ${inputValue}`}
               subheader={'Creada hace: .... minutos'}
             />
             <CardContent>
@@ -42,12 +64,19 @@ const EntryPage = () => {
                 autoFocus
                 multiline
                 label='Nueva Entrada'
+                value={inputValue}
+                onChange={onInputValueChanged}
+                onBlur={() => setTouched(true)}
+                helperText={inputValue.length <= 0 && touched && 'Ingrese un valor'}
+                
               />
 
               <FormControl>
                 <FormLabel>Estado:</FormLabel>
                 <RadioGroup
                   row
+                  value={status}
+                  onChange={onStatusChanged}
                 >
                   {
                     validStatus.map((option, index) => (
@@ -67,7 +96,8 @@ const EntryPage = () => {
               <Button
                 startIcon={<SaveOutlinedIcon />}
                 variant="contained"
-              // fullWidth
+                disabled={!inputValue.trim().length ? true : false}
+                onClick={onSave}
               >
                 Save
               </Button>
@@ -75,6 +105,17 @@ const EntryPage = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <IconButton
+        sx={{
+          position: 'fixed',
+          bottom: 30,
+          right: 30,
+          backgroundColor: 'error.dark'
+        }}
+      >
+        <DeleteOutlinedIcon />
+      </IconButton>
     </Layouts>
   )
 }
