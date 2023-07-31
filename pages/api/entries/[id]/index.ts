@@ -7,11 +7,6 @@ type Data = { message: string } | IEntry[] | IEntry
 
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const { id } = req.query
-
-  if (!mongoose.isValidObjectId(id)) {
-    res.status(400).json({ message: 'El id no es Valido ' + id })
-  }
 
   switch (req.method) {
     case 'GET':
