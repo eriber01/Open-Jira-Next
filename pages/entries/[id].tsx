@@ -1,3 +1,6 @@
+import { ChangeEvent, FC, useMemo, useState } from "react";
+import { GetServerSideProps } from "next";
+
 import { Layouts } from "@/components/layouts"
 import { validStatus } from "@/constants";
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
@@ -18,29 +21,42 @@ import {
   TextField,
   capitalize
 } from "@mui/material"
-import { ChangeEvent, useState } from "react";
 import { EntryStatus } from "@/interfaces/entries";
+import { isValidObjectId } from "mongoose";
 
 
-const EntryPage = () => {
-  const [inputValue, setInputValue] = useState('')
-  const [status, setStatus] = useState<EntryStatus>('pending')
-  const [touched, setTouched] = useState(false)
+interface Props {
+  id: string
+}
+interface PropsInterface {
+  inputValue: string
+  status: EntryStatus
+  touched: boolean
+}
 
-  const onInputValueChanged = (event: ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value)
+const initialState: PropsInterface = {
+  inputValue: '',
+  status: 'pending',
+  touched: false
+}
+
+const EntryPage: FC<Props> = (props) => {
+  const [state, setState] = useState(initialState)
+  console.log({ props });
+
+  const isNotValid = useMemo(() => state.inputValue.length <= 0 && state.touched, [state.inputValue, state.touched])
+
+  const onChangeState = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, path: string) => {
+    setState(prev => ({
+      ...prev,
+      [path]: path === 'status' ? event.target.value as EntryStatus : event.target.value
+    }))
   }
 
-  const onStatusChanged = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.value);
-    setStatus(event.target.value as EntryStatus)
-  }
 
   const onSave = () => {
-    console.log({ inputValue, status });
+    console.log({ inputValue: state.inputValue, status: state.status });
   }
-console.log(touched);
-
 
   return (
     <Layouts title=".........">
@@ -53,7 +69,7 @@ console.log(touched);
         >
           <Card>
             <CardHeader
-              title={`Entrada: ${inputValue}`}
+              title={`Entrada: ${state.inputValue}`}
               subheader={'Creada hace: .... minutos'}
             />
             <CardContent>
@@ -64,19 +80,22 @@ console.log(touched);
                 autoFocus
                 multiline
                 label='Nueva Entrada'
-                value={inputValue}
-                onChange={onInputValueChanged}
-                onBlur={() => setTouched(true)}
-                helperText={inputValue.length <= 0 && touched && 'Ingrese un valor'}
-                
+                value={state.inputValue}
+                onChange={(event) => onChangeState(event, 'inputValue')}
+                onBlur={() => setState(prev => ({
+                  ...prev,
+                  touched: true
+                }))}
+                helperText={isNotValid && 'Ingrese un valor'}
+                error={isNotValid}
               />
 
               <FormControl>
                 <FormLabel>Estado:</FormLabel>
                 <RadioGroup
                   row
-                  value={status}
-                  onChange={onStatusChanged}
+                  value={state.status}
+                  onChange={(event) => onChangeState(event, 'status')}
                 >
                   {
                     validStatus.map((option, index) => (
@@ -96,8 +115,8 @@ console.log(touched);
               <Button
                 startIcon={<SaveOutlinedIcon />}
                 variant="contained"
-                disabled={!inputValue.trim().length ? true : false}
                 onClick={onSave}
+                disabled={state.inputValue.length <= 0}
               >
                 Save
               </Button>
@@ -118,6 +137,28 @@ console.log(touched);
       </IconButton>
     </Layouts>
   )
+};
+
+
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+
+  const { id } = params as { id: string }
+
+  if (!isValidObjectId(id)) {
+    console.log('No es un Id Valido');
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {
+      id
+    }
+  }
 }
 
 
