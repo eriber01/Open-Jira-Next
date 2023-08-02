@@ -7,6 +7,7 @@ type Data = { message: string } | IEntry[] | IEntry
 
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+throw new Error("entro");
 
   switch (req.method) {
     case 'GET':
@@ -30,7 +31,7 @@ const getEntry = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     res.status(500).json({ message: 'Error connect to Database' })
   }
 
-  const entry = await EntryModel.findById(id)
+  const entry = await EntryModel.findById(id).lean()
 
   if (!entry) {
     await db.disconnect()
