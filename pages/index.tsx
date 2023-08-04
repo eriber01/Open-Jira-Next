@@ -2,6 +2,7 @@ import { NextPage } from 'next'
 import { Grid, Card, CardHeader, CardContent } from "@mui/material";
 import { Layouts } from '@/components/layouts'
 import { EntryList, NewEntry } from '@/components/ui';
+
 const HomePage: NextPage = () => {
   return (
     <>

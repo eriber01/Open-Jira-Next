@@ -9,6 +9,7 @@ import {
   Typography,
   CardActions
 } from '@mui/material';
+import { formatDate } from '@/utils/formatDate';
 
 interface Props {
   entry: Entry
@@ -21,7 +22,7 @@ export const EntryCard: FC<Props> = ({ entry }) => {
   const onDragStart = (event: DragEvent) => {
     event.dataTransfer.setData('text', entry._id)
     setIsDragging(true)
-  }  
+  }
 
   const onDragEnd = () => {
     setIsDragging(false)
@@ -34,14 +35,14 @@ export const EntryCard: FC<Props> = ({ entry }) => {
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      onClick={()=> push(`/entries/${entry._id}`)      }
+      onClick={() => push(`/entries/${entry._id}`)}
     >
       <CardActionArea>
         <CardContent>
           <Typography sx={{ whiteSpace: 'pre-line' }}>{entry.description}</Typography>
         </CardContent>
         <CardActions sx={{ display: 'flex', justifyContent: 'end', paddingRight: 2 }}>
-          <Typography variant='body2'>Hace 30 Minutos</Typography>
+          <Typography variant='body2'>Hace {formatDate(entry.createdAt)}</Typography>
         </CardActions>
       </CardActionArea>
     </Card>

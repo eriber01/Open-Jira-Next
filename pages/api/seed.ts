@@ -14,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   await db.connect();
-  console.log('va a borrar ');
   await EntryModel.deleteMany()
 
   await EntryModel.insertMany(seedData.entries)

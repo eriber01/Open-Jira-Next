@@ -3,7 +3,7 @@ import { EntriesContext } from "./";
 import { entriesReducer } from './';
 import { Entry } from "@/interfaces/entries";
 import { entriesApi } from "@/apis";
-
+import { onMessage } from "@/utils/onMessage";
 export interface entriesProps {
   entries: Entry[]
 }
@@ -14,12 +14,12 @@ const ENTRIES_INITIAL_STATE: entriesProps = {
 
 export const EntriesProvider = ({ children }: PropsWithChildren) => {
   const [state, dispatch] = useReducer(entriesReducer, ENTRIES_INITIAL_STATE)
-
   const addNewEntry = async (description: string) => {
 
     try {
       const { data } = await entriesApi.post<Entry>('/entries', { description })
       dispatch({ type: '[Entry] Add-Entry', payload: data })
+      onMessage({ message: 'Entrada Agregada', type: 'success' })
     } catch (error) {
 
     }
@@ -34,6 +34,8 @@ export const EntriesProvider = ({ children }: PropsWithChildren) => {
         type: '[Entry] ENTRY_UPDATE',
         payload: data
       })
+
+
     } catch (error) {
 
     }
@@ -55,7 +57,8 @@ export const EntriesProvider = ({ children }: PropsWithChildren) => {
         ...state,
         //methops
         addNewEntry,
-        updateEntry
+        updateEntry,
+        refreshEntries
       }}>
       {children}
     </EntriesContext.Provider>

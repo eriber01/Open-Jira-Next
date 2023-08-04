@@ -21,9 +21,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
 const getEntries = async (res: NextApiResponse<Data>) => {
 
   await db.connect()
-
   const entries = await EntryModel.find().sort({ createdAt: 'ascending' })
-
   res.status(200).json(entries)
 
   await db.disconnect()
@@ -49,7 +47,6 @@ const postEntry = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     return res.status(201).json(newEntry)
   } catch (error) {
     await db.disconnect()
-    console.log(error);
     return res.status(500).json({ message: 'Algo salio mal!' })
   }
 }

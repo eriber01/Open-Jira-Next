@@ -1,12 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-/*
-* 0 = disconnected
-* 1 = connected
-* 2 = connecting
-* 3 = disconnecting
-*/
-
 const mongoConnection = {
   isConnected: 0
 }
@@ -14,7 +7,6 @@ const mongoConnection = {
 
 export const connect = async () => {
   if (mongoConnection.isConnected) {
-    console.log('ya esta conectado');
     return;
   }
 
@@ -22,7 +14,6 @@ export const connect = async () => {
     mongoConnection.isConnected = mongoose.connections[0].readyState
 
     if (mongoConnection.isConnected === 1) {
-      console.log('usando coneccion anterior');
       return
     }
 
@@ -46,6 +37,5 @@ export const disconnect = async () => {
 
   await mongoose.disconnect()
   mongoConnection.isConnected = 0
-  console.log('desconectado de mongo');
 
 }

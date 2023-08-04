@@ -23,9 +23,7 @@ export const EntryList: FC<Props> = ({ status }) => {
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     const id = event.dataTransfer.getData('text')
-    console.log(id);
     const entry = entries.find(item => item._id === id)!
-    console.log(entry);
     entry.status = status
     updateEntry(entry)
     setIsDragging(false)

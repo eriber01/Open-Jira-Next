@@ -1,23 +1,23 @@
 import { db } from '@/database'
 import { EntryModel, IEntry } from '@/models'
-import mongoose from 'mongoose'
+import { isValidObjectId } from "mongoose"
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = { message: string } | IEntry[] | IEntry
 
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-throw new Error("entro");
 
   switch (req.method) {
     case 'GET':
       return getEntry(req, res)
     case 'PUT':
       return updateEntry(req, res)
+    case 'DELETE':
+      return deleteEntryById(req, res)
     default:
       return res.status(400).json({ message: 'EndPoint Not Found' });
   }
-
 }
 
 
@@ -71,4 +71,23 @@ const updateEntry = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     return res.status(500).json({ message: 'Error actualizando la Entrada' })
   }
 
+}
+
+
+
+export const deleteEntryById = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
+  const { id } = req.query
+
+  if (!isValidObjectId(id)) return res.status(500).json({ message: 'Entrada no encontrada' });
+
+  try {
+
+    await db.connect();
+    const entry = await EntryModel.findByIdAndDelete({ _id: id })
+    await db.disconnect()
+
+    return res.status(200).json(entry!)
+  } catch (error) {
+    return res.status(500).json({ message: 'Error Borrando la Entrada' })
+  }
 }

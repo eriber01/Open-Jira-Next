@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useMemo, useState } from "react";
+import { ChangeEvent, FC, useContext, useMemo, useState } from "react";
 import { GetServerSideProps } from "next";
 
 import { Layouts } from "@/components/layouts"
@@ -21,12 +21,17 @@ import {
   TextField,
   capitalize
 } from "@mui/material"
-import { EntryStatus } from "@/interfaces/entries";
-import { isValidObjectId } from "mongoose";
+import { Entry, EntryStatus } from "@/interfaces/entries";
+import { manageEntries } from "@/database";
+import { entriesApi } from "@/apis";
+import { useRouter } from "next/router";
+import { EntriesContext } from "@/context/entries";
+import { onMessage } from "@/utils/onMessage";
+import { formatDate } from "@/utils/formatDate";
 
 
 interface Props {
-  id: string
+  entry: Entry
 }
 interface PropsInterface {
   inputValue: string
@@ -34,15 +39,16 @@ interface PropsInterface {
   touched: boolean
 }
 
-const initialState: PropsInterface = {
-  inputValue: '',
-  status: 'pending',
-  touched: false
-}
 
-const EntryPage: FC<Props> = (props) => {
-  const [state, setState] = useState(initialState)
-  console.log({ props });
+const EntryPage: FC<Props> = ({ entry }) => {
+  const [state, setState] = useState<PropsInterface>({
+    inputValue: entry.description || '',
+    status: entry.status || 'pending',
+    touched: false
+  })
+
+  const { refreshEntries, updateEntry } = useContext(EntriesContext)
+  const { push } = useRouter()
 
   const isNotValid = useMemo(() => state.inputValue.length <= 0 && state.touched, [state.inputValue, state.touched])
 
@@ -53,13 +59,27 @@ const EntryPage: FC<Props> = (props) => {
     }))
   }
 
+  const onSave = async () => {
+    const payload: Entry = {
+      _id: entry._id,
+      description: state.inputValue,
+      status: state.status,
+      createdAt: entry.createdAt,
+    }
+    updateEntry(payload)
+    onMessage({ message: 'Entrada Actualizada', type: 'success' })
+    push('/')
+  }
 
-  const onSave = () => {
-    console.log({ inputValue: state.inputValue, status: state.status });
+  const deleteEntry = async () => {
+    await entriesApi.delete<Entry>(`/entries/${entry._id}`)
+    refreshEntries()
+    push('/')
+    onMessage({ message: 'Entrada Borrada', type: 'success' })
   }
 
   return (
-    <Layouts title=".........">
+    <Layouts title={state.inputValue.substring(0, 20) + '...'}>
       <Grid
         container
         justifyContent={"center"}
@@ -69,8 +89,8 @@ const EntryPage: FC<Props> = (props) => {
         >
           <Card>
             <CardHeader
-              title={`Entrada: ${state.inputValue}`}
-              subheader={'Creada hace: .... minutos'}
+              title={`Entrada: `}
+              subheader={`Creada hace: ${formatDate(entry.createdAt)}`}
             />
             <CardContent>
               <TextField
@@ -132,6 +152,7 @@ const EntryPage: FC<Props> = (props) => {
           right: 30,
           backgroundColor: 'error.dark'
         }}
+        onClick={() => deleteEntry()}
       >
         <DeleteOutlinedIcon />
       </IconButton>
@@ -144,8 +165,9 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
   const { id } = params as { id: string }
 
-  if (!isValidObjectId(id)) {
-    console.log('No es un Id Valido');
+  const entry = await manageEntries.getEntryById(id)
+
+  if (!entry) {
     return {
       redirect: {
         destination: '/',
@@ -156,7 +178,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
   return {
     props: {
-      id
+      entry
     }
   }
 }
